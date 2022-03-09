@@ -170,11 +170,11 @@ export default class AuthProvider {
     }
 
     private _createClient(tenantId: string): PublicClientApplication {
-        log.info(`[${tenantId}] MSAL proxy URL ${process.env.PROXY_URL}`)
+        log.info(`[${tenantId}] MSAL proxy URL ${this.config.proxyUrl}`)
 
         return  new PublicClientApplication({
             system: {
-                proxyUrl: process.env.PROXY_URL
+                // proxyUrl: this.config.proxyUrl
             },
             auth: {
                 clientId: this.config.clientId,

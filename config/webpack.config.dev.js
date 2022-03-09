@@ -25,6 +25,9 @@ module.exports = merge(config, {
             warnings: false,
         },
         clientLogLevel: "error",
+        proxy: {
+
+        }
     },
     output: {
         path: path.join(__dirname, "../build/"),

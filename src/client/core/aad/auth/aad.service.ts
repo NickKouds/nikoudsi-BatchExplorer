@@ -9,6 +9,7 @@ import { BlIpcMain } from "client/core/bl-ipc-main";
 import { fetch } from "client/core/fetch";
 import { BatchExplorerProperties } from "client/core/properties";
 import { TelemetryManager } from "client/core/telemetry";
+import { ProxySettingsManager } from "client/proxy";
 import { Constants } from "common";
 import { IpcEvent } from "common/constants";
 import { Deferred } from "common/deferred";
@@ -23,7 +24,7 @@ import {
 import { AADUser } from "./aad-user";
 import { UserDecoder } from "./user-decoder";
 
-const aadConfig: AADConfig = {
+const defaultAADConfig: AADConfig = {
     tenant: "common",
     clientId: "04b07795-8ddb-461a-bbee-02f9e1bf7b46", // Azure CLI
     redirectUri: "urn:ietf:wg:oauth:2.0:oob",
@@ -51,11 +52,13 @@ export class AADService {
         private localStorage: DataStore,
         private properties: BatchExplorerProperties,
         private telemetryManager: TelemetryManager,
-        ipcMain: BlIpcMain
+        ipcMain: BlIpcMain,
+        private proxySettings: ProxySettingsManager
     ) {
         this._userDecoder = new UserDecoder();
         this.currentUser = this._currentUser.asObservable();
         this.tenants = this._tenants.asObservable();
+        const aadConfig = defaultAADConfig;
         this.userAuthorization = new AuthenticationService(this.app, aadConfig,
             new AuthProvider(this.app, aadConfig), this);
         this.authenticationState = this._authenticationState.asObservable();
@@ -67,6 +70,12 @@ export class AADService {
         this.userAuthorization.state.subscribe((state) => {
             this._authenticationState.next(state);
         });
+    }
+    private async _configureAAD(): Promise<AADConfig> {
+        const settings = await this.proxySettings.settings;
+        const config = Object.assign({ proxyUrl: settings?.http },
+            defaultAADConfig);
+        return config;
     }
 
     public async init() {

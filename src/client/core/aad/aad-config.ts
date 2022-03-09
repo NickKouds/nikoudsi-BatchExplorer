@@ -3,4 +3,5 @@ export interface AADConfig {
     clientId: string;
     redirectUri: string;
     logoutRedirectUri: string;
+    proxyUrl?: string;
 }
