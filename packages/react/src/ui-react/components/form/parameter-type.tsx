@@ -1,10 +1,15 @@
-import { ParameterType as CommonParameterType } from "@batch/ui-common";
-import * as React from "react";
-import { Parameter } from "@batch/ui-common";
-import { TextField } from "./text-field";
-import { Dropdown } from "./dropdown";
-import { useAsyncEffect, useUniqueId } from "../../hooks";
+import {
+    DependencyName,
+    Parameter,
+    ParameterType as CommonParameterType,
+} from "@batch/ui-common";
 import { FormValues } from "@batch/ui-common/lib/form";
+import { StorageAccount } from "@batch/ui-service";
+import * as React from "react";
+import { useAsyncEffect, useUniqueId } from "../../hooks";
+import { useDependency } from "../../hooks/use-dependency";
+import { Dropdown } from "./dropdown";
+import { TextField } from "./text-field";
 
 enum ExtendedParameterType {
     BatchAccountName = "BatchAccountName",
@@ -99,7 +104,7 @@ export class DefaultParameterTypeResolver implements ParameterTypeResolver {
                 );
             case ParameterType.StorageAccountId:
                 return (
-                    <StringParamTextField
+                    <StorageAccountDropdown
                         id={id}
                         key={param.name}
                         param={param}
@@ -111,6 +116,7 @@ export class DefaultParameterTypeResolver implements ParameterTypeResolver {
                         id={id}
                         key={param.name}
                         param={param}
+                        subscription={subscription}
                     />
                 );
             case ParameterType.Tags:
@@ -150,6 +156,48 @@ export function StringParamTextField<
             onChange={(newValue: string | undefined) => {
                 param.value = newValue as V[K];
             }}
+        />
+    );
+}
+
+export function StorageAccountDropdown<
+    V extends FormValues,
+    K extends Extract<keyof V, string>
+>(props: ParamControlProps<V, K>): JSX.Element {
+    const { param } = props;
+    const value = param.value == null ? undefined : String(param.value);
+
+    const dataSource = useDependency(DependencyName.StorageAccountService);
+
+    const [loading, setLoading] = React.useState<boolean>(true);
+    const [storageAccounts, setStorageAccounts] = React.useState<
+        StorageAccount[]
+    >([]);
+    const id = useUniqueId("form-control", props.id);
+
+    useAsyncEffect(async () => {
+        setTimeout(async () => {
+            const accounts = await dataSource.getStorageAccounts(
+                param.subscription
+            );
+            setStorageAccounts(accounts);
+            setLoading(false);
+        });
+    });
+
+    const options = storageAccounts.map((sub) => {
+        return { value: sub.id, label: sub.name };
+    });
+
+    return (
+        <Dropdown
+            id={id}
+            label={param.label}
+            disabled={loading || param.disabled}
+            options={options}
+            placeholder={param.placeholder}
+            value={value}
+            onChange={(value: string) => (param.value = value as V[K])}
         />
     );
 }
@@ -194,9 +242,7 @@ export function SubscriptionIdParamDropdown<
             options={options}
             placeholder={param.placeholder}
             value={value}
-            onChange={(newValue: string) => {
-                param.value = newValue as V[K];
-            }}
+            onChange={(newValue: string) => (param.value = newValue as V[K])}
         />
     );
 }

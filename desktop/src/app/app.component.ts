@@ -15,6 +15,7 @@ import { BrowserDependencyName } from "@batch/ui-react";
 import { registerIcons } from "app/config";
 import {
     AuthorizationHttpService,
+    AuthService,
     BatchAccountService,
     NavigatorService,
     NcjTemplateService,
@@ -29,6 +30,7 @@ import { Environment } from "common/constants";
 import { Subject, combineLatest } from "rxjs";
 import { takeUntil } from "rxjs/operators";
 import { DefaultBrowserEnvironment } from "@batch/ui-react/lib/environment";
+import BatchExplorerHttpClient from "@batch-flask/core/batch-explorer-http-client";
 
 @Component({
     selector: "bl-app",
@@ -56,6 +58,7 @@ export class AppComponent implements OnInit, OnDestroy {
         private route: ActivatedRoute,
         permissionService: PermissionService,
         authHttpService: AuthorizationHttpService,
+        authService: AuthService,
         ipc: IpcService,
         keybindingService: KeyBindingsService,
         private telemetryService: TelemetryService,
@@ -73,7 +76,8 @@ export class AppComponent implements OnInit, OnDestroy {
                 // TODO: Create an adapter which hooks up to the desktop logger
                 [DependencyName.Logger]: () => new ConsoleLogger(),
                 // TODO: Create an HTTP client which hooks up to the desktop one
-                [DependencyName.HttpClient]: () => new FetchHttpClient(),
+                [DependencyName.HttpClient]:
+                    () => new BatchExplorerHttpClient(authService),
                 [BrowserDependencyName.ParameterTypeResolver]: () => {
                     return new DefaultParameterTypeResolver();
                 },

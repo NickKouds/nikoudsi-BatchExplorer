@@ -22,6 +22,11 @@ export interface Environment<C extends EnvironmentConfig> {
     getLogger(): Logger;
 
     /**
+     * Gets the logger for the current environment
+     */
+    getHttpClient(): HttpClient;
+
+    /**
      * Returns a unique (for this environment), auto-incremented ID number
      */
     uniqueId(): number;
@@ -61,6 +66,7 @@ export interface Environment<C extends EnvironmentConfig> {
 export enum DependencyName {
     Logger = "logger",
     HttpClient = "httpClient",
+    StorageAccountService = "storageAccount",
 }
 
 /**
