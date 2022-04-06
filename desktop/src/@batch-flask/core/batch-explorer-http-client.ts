@@ -19,15 +19,20 @@ export default class BatchExplorerHttpClient extends AbstractHttpClient {
         const accessToken: AccessToken =
             await this.authService.getAccessToken(tenantId);
         const authRequestProps = {...requestProps};
-        authRequestProps.headers.set("Authorization",
-            `${accessToken.tokenType} ${accessToken.accessToken}`);
+        if (!authRequestProps.headers) {
+            authRequestProps.headers = {};
+        }
+        authRequestProps.headers["Authorization"] =
+            `${accessToken.tokenType} ${accessToken.accessToken}`;
         return this._delegate.fetch(urlOrRequest, authRequestProps);
     }
 
-    private getTenantId(urlOrRequest: string | HttpRequest | Request) {
-        let subscriptionId;
+    private getTenantIdFor(urlOrRequest: string | HttpRequest | Request):
+    string {
+        let tenantId;
         if (typeof urlOrRequest === "string") {
-            subscriptionId = "";
+            tenantId = "";
         }
+        return tenantId;
     }
 }

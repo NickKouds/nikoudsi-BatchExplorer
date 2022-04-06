@@ -34,7 +34,7 @@ export abstract class AbstractEnvironment<
         return logger;
     }
 
-    getHttpClient(): HttpClient {
+    getHttpClient<T extends HttpClient>(): T {
         const httpClient = this.getInjectable<HttpClient>(
             DependencyName.HttpClient
         );
@@ -43,7 +43,7 @@ export abstract class AbstractEnvironment<
                 "No HTTP client configured for the current environment"
             );
         }
-        return httpClient;
+        return httpClient as T;
     }
 
     protected _globalIdCounter: number = 0;

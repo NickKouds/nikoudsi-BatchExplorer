@@ -6,8 +6,7 @@ import {
 import { FormValues } from "@batch/ui-common/lib/form";
 import { StorageAccount } from "@batch/ui-service";
 import * as React from "react";
-import { useAsyncEffect, useUniqueId } from "../../hooks";
-import { useDependency } from "../../hooks/use-dependency";
+import { useAsyncEffect, useDependency, useUniqueId } from "../../hooks";
 import { Dropdown } from "./dropdown";
 import { TextField } from "./text-field";
 
@@ -177,8 +176,10 @@ export function StorageAccountDropdown<
 
     useAsyncEffect(async () => {
         setTimeout(async () => {
+            // const subscriptionId = param.parentForm.getParam("subscriptionId");
+            const subscriptionId = "";
             const accounts = await dataSource.getStorageAccounts(
-                param.subscription
+                subscriptionId
             );
             setStorageAccounts(accounts);
             setLoading(false);
