@@ -1,7 +1,14 @@
 import { AbstractHttpService } from "../http-service";
 import { StorageAccount } from "./storage-account-models";
 
-export class StorageAccountService extends AbstractHttpService {
+export interface StorageAccountService {
+    getStorageAccounts(subscriptionId: string): Promise<StorageAccount[]>;
+}
+
+export class StorageAccountServiceImpl
+    extends AbstractHttpService
+    implements StorageAccountService
+{
     public async getStorageAccounts(
         subscriptionId: string
     ): Promise<StorageAccount[]> {

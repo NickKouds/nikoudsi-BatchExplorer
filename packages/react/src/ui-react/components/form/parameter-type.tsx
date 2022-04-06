@@ -4,7 +4,7 @@ import {
     ParameterType as CommonParameterType,
 } from "@batch/ui-common";
 import { FormValues } from "@batch/ui-common/lib/form";
-import { StorageAccount } from "@batch/ui-service";
+import { StorageAccount, StorageAccountService } from "@batch/ui-service";
 import * as React from "react";
 import { useAsyncEffect, useDependency, useUniqueId } from "../../hooks";
 import { Dropdown } from "./dropdown";
@@ -166,7 +166,9 @@ export function StorageAccountDropdown<
     const { param } = props;
     const value = param.value == null ? undefined : String(param.value);
 
-    const dataSource = useDependency(DependencyName.StorageAccountService);
+    const service: StorageAccountService = useDependency(
+        DependencyName.StorageAccountService
+    );
 
     const [loading, setLoading] = React.useState<boolean>(true);
     const [storageAccounts, setStorageAccounts] = React.useState<
@@ -178,9 +180,7 @@ export function StorageAccountDropdown<
         setTimeout(async () => {
             // const subscriptionId = param.parentForm.getParam("subscriptionId");
             const subscriptionId = "";
-            const accounts = await dataSource.getStorageAccounts(
-                subscriptionId
-            );
+            const accounts = await service.getStorageAccounts(subscriptionId);
             setStorageAccounts(accounts);
             setLoading(false);
         });

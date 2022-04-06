@@ -3,7 +3,7 @@ import {
     initMockEnvironment,
 } from "@batch/ui-common/lib/environment";
 import { MockHttpClient, MockHttpResponse } from "@batch/ui-common/lib/http";
-import { StorageAccountService } from "../storage-account-service";
+import { FakeStorageAccountService } from "../fake-storage-account-service";
 
 describe("StorageAccountService", () => {
     let httpClient: MockHttpClient;
@@ -14,7 +14,7 @@ describe("StorageAccountService", () => {
     });
 
     test("getStorageAccounts()", async () => {
-        const service = new StorageAccountService();
+        const service = new FakeStorageAccountService();
 
         httpClient.addExpected(
             new MockHttpResponse(
