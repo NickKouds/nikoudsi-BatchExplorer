@@ -13,10 +13,11 @@ export class StorageAccountServiceImpl
         subscriptionId: string
     ): Promise<StorageAccount[]> {
         const response = await this.httpClient.get(
-            `/subscriptions/${subscriptionId}/storageAccounts`,
+            `https://management.azure.com/subscriptions/${subscriptionId}/providers/Microsoft.Storage/storageAccounts?api-version=2021-04-01`,
             {}
         );
         const json = await response.json();
-        return json as StorageAccount[];
+        console.log("JSON", json);
+        return (json as any).value as StorageAccount[];
     }
 }

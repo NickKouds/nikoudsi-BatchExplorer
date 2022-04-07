@@ -1,21 +1,24 @@
-import { AbstractHttpClient, FetchHttpClient, HttpRequest, HttpRequestInit } from "@batch/ui-common/lib/http";
-import { AuthService } from "app/services";
+import { getSubscriptionIdFromUrl } from "@batch-flask/utils";
+import { AbstractHttpClient, FetchHttpClient, HttpRequestInit, UrlOrRequestType } from "@batch/ui-common/lib-cjs/http";
+import { AuthService, SubscriptionService } from "app/services";
 import { AccessToken } from "./aad";
 
 export default class BatchExplorerHttpClient extends AbstractHttpClient {
     private _delegate: FetchHttpClient;
 
     constructor(
-        private authService: AuthService
+        private authService: AuthService,
+        private subscriptionService: SubscriptionService
     ) {
         super();
+        this._delegate = new FetchHttpClient();
     }
 
     public async fetch(
-        urlOrRequest: string | HttpRequest | Request,
+        urlOrRequest: UrlOrRequestType,
         requestProps?: HttpRequestInit
     ): Promise<Response> {
-        const tenantId = this.getTenantIdFor(urlOrRequest);
+        const tenantId = await this.getTenantIdFor(urlOrRequest);
         const accessToken: AccessToken =
             await this.authService.getAccessToken(tenantId);
         const authRequestProps = {...requestProps};
@@ -27,12 +30,11 @@ export default class BatchExplorerHttpClient extends AbstractHttpClient {
         return this._delegate.fetch(urlOrRequest, authRequestProps);
     }
 
-    private getTenantIdFor(urlOrRequest: string | HttpRequest | Request):
-    string {
-        let tenantId;
-        if (typeof urlOrRequest === "string") {
-            tenantId = "";
-        }
-        return tenantId;
+    private getTenantIdFor(urlOrRequest: UrlOrRequestType): Promise<string> {
+        const subscriptionId = getSubscriptionIdFromUrl(urlOrRequest);
+        return new Promise(resolve =>
+            this.subscriptionService.get(subscriptionId)
+                .subscribe(subscription => resolve(subscription.tenantId))
+        );
     }
 }

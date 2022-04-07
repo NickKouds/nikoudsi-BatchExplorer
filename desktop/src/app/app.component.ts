@@ -76,7 +76,7 @@ export class AppComponent implements OnInit, OnDestroy {
                 // TODO: Create an adapter which hooks up to the desktop logger
                 [DependencyName.Logger]: () => new ConsoleLogger(),
                 [DependencyName.HttpClient]:
-                    () => new BatchExplorerHttpClient(authService),
+                    () => new BatchExplorerHttpClient(authService, this.subscriptionService),
                 [DependencyName.StorageAccountService]:
                     () => new StorageAccountServiceImpl(),
                 [BrowserDependencyName.ParameterTypeResolver]:

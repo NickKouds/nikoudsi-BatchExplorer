@@ -1,12 +1,13 @@
 import {
     DependencyName,
+    getEnvironment,
     Parameter,
     ParameterType as CommonParameterType,
 } from "@batch/ui-common";
 import { FormValues } from "@batch/ui-common/lib/form";
 import { StorageAccount, StorageAccountService } from "@batch/ui-service";
 import * as React from "react";
-import { useAsyncEffect, useDependency, useUniqueId } from "../../hooks";
+import { useAsyncEffect, useUniqueId } from "../../hooks";
 import { Dropdown } from "./dropdown";
 import { TextField } from "./text-field";
 
@@ -166,25 +167,23 @@ export function StorageAccountDropdown<
     const { param } = props;
     const value = param.value == null ? undefined : String(param.value);
 
-    const service: StorageAccountService = useDependency(
-        DependencyName.StorageAccountService
-    );
-
     const [loading, setLoading] = React.useState<boolean>(true);
     const [storageAccounts, setStorageAccounts] = React.useState<
         StorageAccount[]
     >([]);
     const id = useUniqueId("form-control", props.id);
+    const service: StorageAccountService = getEnvironment().getInjectable(
+        DependencyName.StorageAccountService
+    );
 
-    useAsyncEffect(async () => {
-        setTimeout(async () => {
-            // const subscriptionId = param.parentForm.getParam("subscriptionId");
-            const subscriptionId = "";
-            const accounts = await service.getStorageAccounts(subscriptionId);
-            setStorageAccounts(accounts);
-            setLoading(false);
-        });
-    });
+    console.log("StorageAccountDropdown");
+    // useAsyncEffect(async () => {
+    //     // const subscriptionId = param.parentForm.getParam("subscriptionId");
+    //     const subscriptionId = "7aabd8d2-3be2-4bb1-a0c2-f1b4bb46a16f";
+    //     const accounts = await service.getStorageAccounts(subscriptionId);
+    //     setStorageAccounts(accounts);
+    //     setLoading(false);
+    // });
 
     const options = storageAccounts.map((sub) => {
         return { value: sub.id, label: sub.name };
