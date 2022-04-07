@@ -176,14 +176,19 @@ export function StorageAccountDropdown<
         DependencyName.StorageAccountService
     );
 
-    console.log("StorageAccountDropdown");
-    // useAsyncEffect(async () => {
-    //     // const subscriptionId = param.parentForm.getParam("subscriptionId");
-    //     const subscriptionId = "7aabd8d2-3be2-4bb1-a0c2-f1b4bb46a16f";
-    //     const accounts = await service.getStorageAccounts(subscriptionId);
-    //     setStorageAccounts(accounts);
-    //     setLoading(false);
-    // });
+    useAsyncEffect(async () => {
+        try {
+            // const subscriptionId = param.parentForm.getParam("subscriptionId");
+            const subscriptionId = "7aabd8d2-3be2-4bb1-a0c2-f1b4bb46a16f";
+            const accounts = await service.getStorageAccounts(subscriptionId);
+            setStorageAccounts(accounts);
+            setLoading(false);
+        } catch (error) {
+            console.warn("ERROR", error);
+            setStorageAccounts([]);
+            setLoading(false);
+        }
+    }, [service]);
 
     const options = storageAccounts.map((sub) => {
         return { value: sub.id, label: sub.name };
@@ -228,7 +233,7 @@ export function SubscriptionIdParamDropdown<
                 resolve();
             }, 1000);
         });
-    });
+    }, []);
 
     const options = subscriptions.map((sub) => {
         return { value: sub.id, label: sub.displayName };
