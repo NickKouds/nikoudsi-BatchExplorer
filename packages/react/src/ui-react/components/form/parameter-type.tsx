@@ -1,9 +1,9 @@
 import {
     DependencyName,
-    getEnvironment,
     Parameter,
     ParameterType as CommonParameterType,
 } from "@batch/ui-common";
+import { inject } from "@batch/ui-common/lib/environment";
 import { FormValues } from "@batch/ui-common/lib/form";
 import { StorageAccount, StorageAccountService } from "@batch/ui-service";
 import * as React from "react";
@@ -172,7 +172,7 @@ export function StorageAccountDropdown<
         StorageAccount[]
     >([]);
     const id = useUniqueId("form-control", props.id);
-    const service: StorageAccountService = getEnvironment().getInjectable(
+    const service: StorageAccountService = inject(
         DependencyName.StorageAccountService
     );
 

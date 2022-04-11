@@ -27,7 +27,7 @@ describe("BatchExplorerHttpClient", () => {
     });
     describe("fetch", () => {
         it("loads an access token for the specified sub", async () => {
-            const response = httpClient.fetch("/subscriptions/deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef");
+            const response = httpClient.fetch("/subscriptions/deadbeef-deadbeef-deadbeef-deadbeef1");
 
             expect(fakeSubscriptionService.get).toHaveBeenCalledOnce();
             expect(fakeAuthService.getAccessToken)
