@@ -6,8 +6,9 @@ A template is provided that can create the entire environment with Batch Explore
 
 ## Prerequisites
 
-* The `az` CLI
 * A valid Azure subscription
+* The [`az`](https://docs.microsoft.com/cli/azure/) command-line interface
+* [jq](https://stedolan.github.io/jq/)
 * An existing virtual network with a VPN gateway that will allow you to connect to the restricted VM
 * An existing SSH keypair
 
@@ -49,14 +50,13 @@ The parameters are:
 
 ### 2. Create the deployment
 
-Other than the parameters above, you must supply the location to which to deploy the resources.
+Run the following shell command, supplying the JSON parameter file and a target Azure location for the deployment
 
-```azurecli
-az deployment sub create \
-    --template-file ./scripts/proxy/main.bicep \
-    --location eastus \
-    --parameters @params.json
+```shell
+./deploy-proxy-environment.sh params.json location
 ```
+
+The deployment will first create all the resources, and then lock the restricted VM so that it could only connect to the internet via the proxy server.
 
 ## Connecting to the restricted and proxy VMs
 
