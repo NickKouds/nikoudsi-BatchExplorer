@@ -1,3 +1,5 @@
+targetScope = 'resourceGroup'
+
 param prefix string
 param location string
 param subnetId string
@@ -82,15 +84,15 @@ resource windowsVMExtensions 'Microsoft.Compute/virtualMachines/extensions@2020-
     type: 'CustomScriptExtension'
     typeHandlerVersion: '1.10'
     autoUpgradeMinorVersion: true
-    settings: {
+    protectedSettings: {
       fileUris: [
         // @@ This should point to the merged branch
         'https://raw.githubusercontent.com/Azure/BatchExplorer/shpaster/proxy-config/scripts/proxy/initVirtualMachine.ps1'
       ]
-    }
-    protectedSettings: {
-      commandToExecute: 'powershell -ExecutionPolicy Bypass -file initVirtualMachine.ps1 -Address ${proxyServer} -Port ${proxyPort} -Build ${batchExplorerBuild}'
+      commandToExecute: 'powershell -ExecutionPolicy Bypass -File initVirtualMachine.ps1 -Address ${proxyServer} -Port ${proxyPort} -Build ${batchExplorerBuild}'
     }
   }
 }
+
 output id string = virtualMachine.id
+output ipAddress string = vmNic.properties.ipConfigurations[0].properties.privateIPAddress

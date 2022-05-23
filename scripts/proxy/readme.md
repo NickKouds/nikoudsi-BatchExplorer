@@ -1,19 +1,69 @@
 # Deploying Batch Explorer Within a Proxied Environment
 
-In order to test how Batch Explorer behaves within a locked-down environment, it's useful to deploy Batch Explorer within a restricted environment in Azure. In this deployment, Batch Explorer is installed within a Windows VM that is connected to a restricted subnet within a virtual network.
+In order to test how Batch Explorer behaves within a locked-down environment, it's useful to deploy Batch Explorer within a restricted environment in Azure. In this deployment, Batch Explorer is installed within a Windows VM whose connectivity is highly restricted. The VM can receive inbound SSH and RDP connections over private IP, so you can only reach the VM over a VPN connection. The VM can make outbound connetions with the outside world only through a proxy server, which is created using [Squid](http://www.squid-cache.org/) hosted on a Linux Ubuntu VM.
 
-```azurecli
-az group create --name "be-proxy" --location --eastus
-az deployment group create \
-    --resource-group "be-proxy" \
-    --template-file proxy-deployment.bicep \
-    --parameters prefix=MyDeployment
+A template is provided that can create the entire environment with Batch Explorer installed. It also creates peerings from your VPN gateway to the deployment's new virtual network.
+
+## Prerequisites
+
+* The `az` CLI
+* A valid Azure subscription
+* An existing virtual network with a VPN gateway that will allow you to connect to the restricted VM
+* An existing SSH keypair
+
+## Steps
+
+### 1. Create a deployment param file
+
+Create a `params.json` file that is specific to your subscription
+
+```json
+{
+    "parameters": {
+        "resourceGroupName": { "value": "" },
+        "createResourceGroup": { "value": true },
+        "prefix": { "value": "" },
+        "username": { "value": "" },
+        "password": { "value": "" },
+        "vpnVnetName": { "value": "" },
+        "vpnVnetResourceGroup": { "value": "" },
+        "batchExplorerBuild": { "value": "" },
+        "proxyPort": { "value": "" },
+        "proxyPublicKey": { "value": "" }
+    }
+}
 ```
 
+The parameters are:
 
-### Notes
+* `resourceGroupName`: A resource group to contain all the resources in the deployment. The resource group will be created.
+* `createResourceGroup`: Should the resource group be created? Otherwise, the deployment assumes the resource group exists with no conflicting resources.
+* `prefix`: A prefix to identify all deployed resources (e.g., "beproxy"). Cannot be longer than 7 characters to avoid resource name length limits (e.g., Windows VMs).
+* `username`: The username for logging into the restricted VM.
+* `password`: The password for logging into the restricted VM.
+* `vpnVnetName`: The virtual network with the preexisting VPN gatewaay.
+* `vpnVnetResourceGroup`: The resource group of the VPN virtual network.
+* `batchExplorerBuild`: The string identifying which Batch Explorer build to fetch (e.g., "2.14.0-insider.602"). The corresponding build must be available to download from the public site, and can be either an insider or stable release.
+* `proxyPort`: The port with which the VM communicates with the proxy server. Used both to set up the the proxy server and the connection to it from the restricted VM (default: 3128).
+* `proxyPublicKey`: The public key of the SSH key pair in order to access the proxy server over SSH. (_optional_)
 
-1. Create Windows VM with Batch Explorer
-1. Create Linux VM with Squid (Proxy)
-1. Create NSG on Windows VM
-1. Create peering between VPN gateway and Windows VM
+### 2. Create the deployment
+
+Other than the parameters above, you must supply the location to which to deploy the resources.
+
+```azurecli
+az deployment sub create \
+    --template-file ./scripts/proxy/main.bicep \
+    --location eastus \
+    --parameters @params.json
+```
+
+## Connecting to the restricted and proxy VMs
+
+When the VPN is active, both the restricted Windows VM and the proxy Linux VM can be accessed using their private IP addresses. The restricted VM can be reached with RDP using the above username and password. Download an RDP configuration file by navigating to the VM on the Azure Portal (will be called `${prefix}-vm`) and then pressing on Connect > RDP > Download RDP File. To connect to the proxy server, SSH into it using the username and SSH key supplied above, or use Bastion from the VM's Connect command on the Azure Portal.
+
+## Notes
+
+* On the restricted VM, the setup script is installed in the directory `C:\Packages\Plugins\Microsoft.Compute.CustomScriptExtension\1.10.12\Downloads\0`
+
+* Failed deployments might be salvaged by passing `--confirm-with-what-if` to `az deployment`, which will prompt you to skip existing resources.

@@ -4,6 +4,7 @@ proxyPort=$1
 
 apt-get -y update
 apt upgrade -y
+apt-get -y update
 apt-get install -y squid
 
 systemctl enable squid

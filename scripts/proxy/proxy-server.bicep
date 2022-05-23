@@ -1,10 +1,12 @@
+targetScope = 'resourceGroup'
+
 param prefix string
 param location string
 param subnetId string
 param nsgId string
 param username string
 param vmSize string
-param publicKey string
+param publicKey string = ''
 param proxyPort string
 
 /* The proxy server allows the virtual machine to connect to the rest of the
@@ -62,14 +64,14 @@ resource proxyServer 'Microsoft.Compute/virtualMachines@2020-12-01' = {
       adminUsername: username
       linuxConfiguration: {
         disablePasswordAuthentication: true
-        ssh: {
+        ssh: (empty(publicKey) ? null : {
           publicKeys: [
             {
               path: '/home/${username}/.ssh/authorized_keys'
               keyData: publicKey
             }
           ]
-        }
+        })
       }
     }
     networkProfile: {
@@ -91,13 +93,11 @@ resource proxyServerExtensions 'Microsoft.Compute/virtualMachines/extensions@201
     type: 'CustomScript'
     typeHandlerVersion: '2.1'
     autoUpgradeMinorVersion: true
-    settings: {
-      fileUrls: [
-        'https://raw.githubusercontent.com/Azure/BatchExplorer/shpaster/proxy-config/scripts/proxy/initProxyServer.sh'
-      ]
-    }
     protectedSettings: {
       commandToExecute: 'sh initProxyServer.sh ${proxyPort}'
+      fileUris: [
+        'https://raw.githubusercontent.com/Azure/BatchExplorer/shpaster/proxy-config/scripts/proxy/initProxyServer.sh'
+      ]
     }
   }
 }

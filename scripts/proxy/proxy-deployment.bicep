@@ -1,32 +1,13 @@
-@description('The prefix for deployment resources')
+targetScope = 'resourceGroup'
+
 param prefix string
-
-@description('The location of the deployment')
-param location string = resourceGroup().location
-
-@description('VM Size')
-param vmSize string = 'Standard_D2s_v3'
-
-@description('Proxy port')
-param proxyPort string = '3128'
-
-@description('VM Username')
+param location string
+param vmSize string
+param proxyPort string
 param username string
-
-@description('VM Password')
-@secure()
 param password string
-
-@description('VM size for proxy server')
-param proxyVmSize string = vmSize
-
-@description('Public key data for proxy server')
+param proxyVmSize string
 param proxyPublicKey string
-
-@description('A virtual network with a VPN gateway')
-param vpnVnetName string
-
-@description('The Batch Explorer build to fetch (e.g., "2.14.0-insider.602")')
 param batchExplorerBuild string
 
 param internalIpAddressRange string = '10.0.0.0/16'
@@ -46,7 +27,7 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2019-11-01' = {
   }
 }
 
-resource defaultSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-08-01' = {
+resource restrictedSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-08-01' = {
   name: 'default'
   parent: virtualNetwork
   properties: {
@@ -108,8 +89,8 @@ resource proxyNsg 'Microsoft.Network/networkSecurityGroups@2019-11-01' = {
   }
 }
 
-resource lockedDownNsg 'Microsoft.Network/networkSecurityGroups@2019-11-01' = {
-  name: '${prefix}-locked-down-nsg'
+resource restrictedNsg 'Microsoft.Network/networkSecurityGroups@2019-11-01' = {
+  name: '${prefix}-restricted-nsg'
   location: location
   properties: {
     securityRules: [
@@ -153,7 +134,7 @@ resource lockedDownNsg 'Microsoft.Network/networkSecurityGroups@2019-11-01' = {
           destinationPortRange: '*'
           sourceAddressPrefix: '*'
           destinationAddressPrefix: '*'
-          access: 'Allow'
+          access: 'Allow' // Should be updated to `Deny` after deployment
           priority: 102
           direction: 'Outbound'
         }
@@ -163,7 +144,7 @@ resource lockedDownNsg 'Microsoft.Network/networkSecurityGroups@2019-11-01' = {
 }
 
 module proxyServer './proxy-server.bicep' = {
-  name: '${prefix}-proxyServer'
+  name: 'proxy-server-module'
   params: {
     prefix: prefix
     location: location
@@ -179,12 +160,12 @@ module proxyServer './proxy-server.bicep' = {
 var proxyServerIp = proxyServer.outputs.ipAddress
 
 module virtualMachine './virtual-machine.bicep' = {
-  name: '${prefix}-virtualMachine'
+  name: 'vm-module'
   params: {
     prefix: prefix
     location: location
-    subnetId: defaultSubnet.id
-    nsgId: lockedDownNsg.id
+    subnetId: restrictedSubnet.id
+    nsgId: restrictedNsg.id
     vmSize: vmSize
     username: username
     password: password
@@ -194,13 +175,7 @@ module virtualMachine './virtual-machine.bicep' = {
   }
 }
 
-module peerings './peerings.bicep' = {
-  name: '${prefix}-peerings'
-  params: {
-    virtualNetworkName: virtualNetwork.name
-    vpnVnetName: vpnVnetName
-    prefix: prefix
-  }
-}
-
+output vnetName string = virtualNetwork.name
 output virtualMachineId string = virtualMachine.outputs.id
+output virtualMachineIpAddress string = virtualMachine.outputs.ipAddress
+output proxyServerIpAddress string = proxyServer.outputs.ipAddress
