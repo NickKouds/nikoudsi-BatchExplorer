@@ -14,6 +14,19 @@ import {
     DefaultParameterTypeResolver,
 } from "@batch/ui-react/lib/components/form";
 
+import GeneratedClient from "@azure/batch";
+//import { DefaultAzureCredential } from "@azure/identity";
+// eslint-disable-next-line no-console
+console.log(GeneratedClient);
+// const client = GeneratedClient(
+//     "https://sdktest.westus.batch.azure.com",
+//     new DefaultAzureCredential()
+// );
+
+// const result = client.path("/pools/{poolId}", "mylinuxtestpool").get();
+// // eslint-disable-next-line no-console
+// console.log(result);
+
 // Defined by webpack
 declare const ENV: {
     MODE: EnvironmentMode;
